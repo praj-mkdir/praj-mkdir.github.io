@@ -1,0 +1,5 @@
+baseURL: "http://praj-mkdir.github.io/"
+title: praj-mkdir
+params:
+  mainSections:
+    - posts
