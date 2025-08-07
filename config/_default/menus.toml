@@ -1,0 +1,27 @@
+# menus.toml
+
+[[main]]
+identifier = "about-me"
+name = "about"
+url = "/about/"
+weight = 10
+
+[[main]]
+identifier = "contact-me"
+name = "contact"
+url = "/contact/"
+weight = 10
+
+[[main]]
+identifier = "archives"
+name = "blog"
+url = "/archives"
+weight = 10
+
+
+[[main]]
+identifier = "now"
+name = "now"
+url = "/now/"
+weight = 10
+
