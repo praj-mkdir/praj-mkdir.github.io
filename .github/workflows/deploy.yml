@@ -16,13 +16,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Checkout destination (git-pages branch)
-        if: github.ref == 'refs/heads/main'
-        uses: actions/checkout@v3
-        with:
-          ref: git-pages
-          path: built-site
-
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
@@ -32,14 +25,23 @@ jobs:
       - name: Build
         run: hugo
 
+      - name: Prepare git-pages branch
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir built-site
+          cd built-site
+          git init
+          git remote add origin https://github.com/${{ github.repository }}
+          git fetch origin git-pages
+          git checkout -b git-pages origin/git-pages || git checkout -b git-pages
+
       - name: Deploy to git-pages
         if: github.ref == 'refs/heads/main'
         run: |
-          cp -R public/* ${GITHUB_WORKSPACE}/built-site/
-          cd ${GITHUB_WORKSPACE}/built-site
+          cp -R public/* built-site/
+          cd built-site
           git add .
 
-          # Skip commit if nothing has changed
           if git diff --cached --quiet; then
             echo "No changes to commit. Skipping deployment."
             exit 0
@@ -48,4 +50,4 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Updated site'
-          git push
+          git push origin git-pages
