@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v3
         if: github.ref == 'refs/heads/main'
         with:
-          ref: gh-pages
+          ref: git-pages
           path: built-site
 
       - name: Setup Hugo
@@ -34,7 +34,7 @@ jobs:
           cp -R public/* ${GITHUB_WORKSPACE}/built-site/
           cd ${GITHUB_WORKSPACE}/built-site
           git add .
-          git config user.name 'praj-mkdir' # change to your username
-          git config user.email 'prajwalpatil3764@gmail.com' # change to your email
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Updated site'
           git push                    
