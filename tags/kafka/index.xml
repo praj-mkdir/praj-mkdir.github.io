@@ -10,9 +10,9 @@
     <atom:link href="http://praj-mkdir.github.io/tags/kafka/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Integrating Apache Kafka with Spring Boot</title>
-      <link>http://praj-mkdir.github.io/posts/page/</link>
+      <link>http://praj-mkdir.github.io/posts/kafka/</link>
       <pubDate>Tue, 15 Sep 2020 11:30:03 +0000</pubDate>
-      <guid>http://praj-mkdir.github.io/posts/page/</guid>
+      <guid>http://praj-mkdir.github.io/posts/kafka/</guid>
       <description>&lt;h1 id=&#34;integrating-apache-kafka-with-spring-boot&#34;&gt;Integrating Apache Kafka with Spring Boot&lt;/h1&gt;
 &lt;p&gt;Apache Kafka is a robust distributed event-streaming platform that enables high-throughput, real-time data pipelines and event-driven applications. Integrating Kafka with Spring Boot provides developers with a seamless way to produce and consume messages, making it ideal for building scalable and resilient systems.&lt;/p&gt;
 &lt;p&gt;This article will guide you through setting up Kafka integration with Spring Boot using Spring Kafka&amp;rsquo;s auto-configuration. By the end, you&amp;rsquo;ll have a functional Spring Boot application with a producer, consumer, and controller to test the setup.&lt;/p&gt;</description>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Handling File Upload Status with S3 Pre-Signed URLs | praj-mkdir</title>
+<meta name="keywords" content="">
+<meta name="description" content="While working on a project, I decided to use S3 pre-signed URLs for file uploads. The main reason was that I didn’t want my backend server to handle large files directly. If a 500MB file came in, routing it through the server would increase latency, consume bandwidth, and unnecessarily load the application. With pre-signed URLs, the backend just generates a temporary signed URL, gives it to the client, and the client uploads directly to S3.">
+<meta name="author" content="Me">
+<link rel="canonical" href="http://praj-mkdir.github.io/posts/s3_upload_status/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.2211ca3164be7830024f6aad2b3a2e520843a64f8f048445c3401c1249aa051d.css" integrity="sha256-IhHKMWS&#43;eDACT2qtKzouUghDpk&#43;PBIRFw0AcEkmqBR0=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://praj-mkdir.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://praj-mkdir.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://praj-mkdir.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://praj-mkdir.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://praj-mkdir.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://praj-mkdir.github.io/posts/s3_upload_status/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<meta property="og:url" content="http://praj-mkdir.github.io/posts/s3_upload_status/">
+  <meta property="og:site_name" content="praj-mkdir">
+  <meta property="og:title" content="Handling File Upload Status with S3 Pre-Signed URLs">
+  <meta property="og:description" content="While working on a project, I decided to use S3 pre-signed URLs for file uploads. The main reason was that I didn’t want my backend server to handle large files directly. If a 500MB file came in, routing it through the server would increase latency, consume bandwidth, and unnecessarily load the application. With pre-signed URLs, the backend just generates a temporary signed URL, gives it to the client, and the client uploads directly to S3.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-08-15T11:30:03+00:00">
+    <meta property="article:modified_time" content="2025-08-15T11:30:03+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Handling File Upload Status with S3 Pre-Signed URLs">
+<meta name="twitter:description" content="While working on a project, I decided to use S3 pre-signed URLs for file uploads. The main reason was that I didn’t want my backend server to handle large files directly. If a 500MB file came in, routing it through the server would increase latency, consume bandwidth, and unnecessarily load the application. With pre-signed URLs, the backend just generates a temporary signed URL, gives it to the client, and the client uploads directly to S3.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://praj-mkdir.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Handling File Upload Status with S3 Pre-Signed URLs",
+      "item": "http://praj-mkdir.github.io/posts/s3_upload_status/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Handling File Upload Status with S3 Pre-Signed URLs",
+  "name": "Handling File Upload Status with S3 Pre-Signed URLs",
+  "description": "While working on a project, I decided to use S3 pre-signed URLs for file uploads. The main reason was that I didn’t want my backend server to handle large files directly. If a 500MB file came in, routing it through the server would increase latency, consume bandwidth, and unnecessarily load the application. With pre-signed URLs, the backend just generates a temporary signed URL, gives it to the client, and the client uploads directly to S3.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "While working on a project, I decided to use S3 pre-signed URLs for file uploads. The main reason was that I didn’t want my backend server to handle large files directly. If a 500MB file came in, routing it through the server would increase latency, consume bandwidth, and unnecessarily load the application. With pre-signed URLs, the backend just generates a temporary signed URL, gives it to the client, and the client uploads directly to S3.\nThis approach worked really well for a few reasons. It improves performance since the file doesn’t take two hops (client → backend → S3), it saves infrastructure costs because my server isn’t handling big file streams, and it scales better when multiple users upload files at the same time. Security is also built in because the URL has an expiry time and only allows the operation I specify (like PUT for upload).\nBut after trying it out, I ran into a problem. The backend had no way of knowing if the upload was completed or not. For example:\nIf a client cancelled the upload halfway, I wouldn’t know. If the network failed during upload, I wouldn’t know. Even if the file was uploaded successfully, there was no automatic notification to the backend. For my use case, this was a problem because I needed to track the state of the file. I wanted to mark it as pending when the URL was generated, then mark it as uploaded only after it was actually present in S3. I also needed a reliable point to trigger post-upload actions like virus scanning, encryption checks, or updating the user’s storage usage.\nTo solve this, I looked into S3 event notifications. S3 supports sending events whenever an object is created, deleted, or modified. These events can be sent to different AWS services such as Lambda, SNS, or SQS. Out of these, I chose SQS because I wanted a queue-based approach that my backend could consume at its own pace.\nThe flow I ended up with looked like this:\nThe client requests a file upload. The backend generates a pre-signed URL and stores a record for the file with status set to “pending upload.” The client uses that URL to upload the file directly to S3. Once the upload is successful, S3 automatically sends an event notification. That event is pushed into an SQS queue. My backend has a consumer that listens to SQS, processes these events, and updates the file status to “uploaded.” At that point, I can trigger additional actions like malware scanning, auditing, or updating user quotas. This solved the problem for me. Instead of relying on the client to tell me if the upload was successful (which can’t be fully trusted), I now rely on S3 itself to confirm. Using SQS in the middle gave me a reliable way to decouple uploads from backend processing, and it also allowed me to handle events asynchronously.\nIn the end, using pre-signed URLs plus S3 event notifications turned out to be a solid pattern. It kept uploads efficient and scalable, while still giving my backend the visibility it needed into the final state of the files.\n",
+  "wordCount" : "525",
+  "inLanguage": "en",
+  "datePublished": "2025-08-15T11:30:03Z",
+  "dateModified": "2025-08-15T11:30:03Z",
+  "author":{
+    "@type": "Person",
+    "name": "Me"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://praj-mkdir.github.io/posts/s3_upload_status/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "praj-mkdir",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://praj-mkdir.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://praj-mkdir.github.io/" accesskey="h" title="praj-mkdir (Alt + H)">praj-mkdir</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://praj-mkdir.github.io/about/" title="about">
+                    <span>about</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://praj-mkdir.github.io/contact/" title="contact">
+                    <span>contact</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://praj-mkdir.github.io/posts/" title="Notes &amp; blogs">
+                    <span>Notes &amp; blogs</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://praj-mkdir.github.io/now/" title="now">
+                    <span>now</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Handling File Upload Status with S3 Pre-Signed URLs
+    </h1>
+    <div class="post-meta"><span title='2025-08-15 11:30:03 +0000 UTC'>August 15, 2025</span>&nbsp;·&nbsp;Me
+
+</div>
+  </header> 
+
+  <div class="post-content"><p>While working on a project, I decided to use S3 pre-signed URLs for file uploads. The main reason was that I didn’t want my backend server to handle large files directly. If a 500MB file came in, routing it through the server would increase latency, consume bandwidth, and unnecessarily load the application. With pre-signed URLs, the backend just generates a temporary signed URL, gives it to the client, and the client uploads directly to S3.</p>
+<p>This approach worked really well for a few reasons. It improves performance since the file doesn’t take two hops (client → backend → S3), it saves infrastructure costs because my server isn’t handling big file streams, and it scales better when multiple users upload files at the same time. Security is also built in because the URL has an expiry time and only allows the operation I specify (like PUT for upload).</p>
+<p>But after trying it out, I ran into a problem. The backend had no way of knowing if the upload was completed or not. For example:</p>
+<ul>
+<li>If a client cancelled the upload halfway, I wouldn’t know.</li>
+<li>If the network failed during upload, I wouldn’t know.</li>
+<li>Even if the file was uploaded successfully, there was no automatic notification to the backend.</li>
+</ul>
+<p>For my use case, this was a problem because I needed to track the state of the file. I wanted to mark it as pending when the URL was generated, then mark it as uploaded only after it was actually present in S3. I also needed a reliable point to trigger post-upload actions like virus scanning, encryption checks, or updating the user’s storage usage.</p>
+<p>To solve this, I looked into S3 event notifications. S3 supports sending events whenever an object is created, deleted, or modified. These events can be sent to different AWS services such as Lambda, SNS, or SQS. Out of these, I chose SQS because I wanted a queue-based approach that my backend could consume at its own pace.</p>
+<p>The flow I ended up with looked like this:</p>
+<ol>
+<li>The client requests a file upload. The backend generates a pre-signed URL and stores a record for the file with status set to “pending upload.”</li>
+<li>The client uses that URL to upload the file directly to S3.</li>
+<li>Once the upload is successful, S3 automatically sends an event notification.</li>
+<li>That event is pushed into an SQS queue.</li>
+<li>My backend has a consumer that listens to SQS, processes these events, and updates the file status to “uploaded.” At that point, I can trigger additional actions like malware scanning, auditing, or updating user quotas.</li>
+</ol>
+<p>This solved the problem for me. Instead of relying on the client to tell me if the upload was successful (which can’t be fully trusted), I now rely on S3 itself to confirm. Using SQS in the middle gave me a reliable way to decouple uploads from backend processing, and it also allowed me to handle events asynchronously.</p>
+<p>In the end, using pre-signed URLs plus S3 event notifications turned out to be a solid pattern. It kept uploads efficient and scalable, while still giving my backend the visibility it needed into the final state of the files.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://praj-mkdir.github.io/">praj-mkdir</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

@@ -129,13 +129,13 @@
                 </a>
             </li>
             <li>
-                <a href="http://praj-mkdir.github.io/archives" title="blog">
-                    <span>blog</span>
+                <a href="http://praj-mkdir.github.io/contact/" title="contact">
+                    <span>contact</span>
                 </a>
             </li>
             <li>
-                <a href="http://praj-mkdir.github.io/contact/" title="contact">
-                    <span>contact</span>
+                <a href="http://praj-mkdir.github.io/posts/" title="Notes &amp; blogs">
+                    <span class="active">Notes &amp; blogs</span>
                 </a>
             </li>
             <li>
@@ -155,6 +155,19 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Handling File Upload Status with S3 Pre-Signed URLs
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>While working on a project, I decided to use S3 pre-signed URLs for file uploads. The main reason was that I didn’t want my backend server to handle large files directly. If a 500MB file came in, routing it through the server would increase latency, consume bandwidth, and unnecessarily load the application. With pre-signed URLs, the backend just generates a temporary signed URL, gives it to the client, and the client uploads directly to S3.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-08-15 11:30:03 +0000 UTC'>August 15, 2025</span>&nbsp;·&nbsp;Me</footer>
+  <a class="entry-link" aria-label="post link to Handling File Upload Status with S3 Pre-Signed URLs" href="http://praj-mkdir.github.io/posts/s3_upload_status/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Integrating Apache Kafka with Spring Boot
     </h2>
   </header>
@@ -164,7 +177,7 @@ This article will guide you through setting up Kafka integration with Spring Boo
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2020-09-15 11:30:03 +0000 UTC'>September 15, 2020</span>&nbsp;·&nbsp;Me</footer>
-  <a class="entry-link" aria-label="post link to Integrating Apache Kafka with Spring Boot" href="http://praj-mkdir.github.io/posts/page/"></a>
+  <a class="entry-link" aria-label="post link to Integrating Apache Kafka with Spring Boot" href="http://praj-mkdir.github.io/posts/kafka/"></a>
 </article>
     </main>
     
