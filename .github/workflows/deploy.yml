@@ -38,7 +38,7 @@ jobs:
       - name: Deploy to git-pages
         if: github.ref == 'refs/heads/main'
         run: |
-          cp -R public/* built-site/
+          cp -R public/. built-site/
           cd built-site
           git add .
 

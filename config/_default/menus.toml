@@ -13,9 +13,9 @@ url = "/contact/"
 weight = 10
 
 [[main]]
-identifier = "archives"
-name = "blog"
-url = "/archives"
+identifier = "blog"
+name = "Notes & blogs"
+url = "/posts/"
 weight = 10
 
 
